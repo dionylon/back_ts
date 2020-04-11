@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "sourceMap": true,
+    "target": "es2016",
+    "strict": true,
+    "lib": [
+      "es2016",
+      "esnext.asynciterable"
+    ],
+    "experimentalDecorators": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
+  },
+  "include": [
+    "./**/*",
+    "*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
