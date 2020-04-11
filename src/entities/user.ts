@@ -1,4 +1,4 @@
-import { Field, ObjectType, registerEnumType } from 'type-graphql';
+import { Field, ObjectType, registerEnumType, Authorized } from 'type-graphql';
 import { prop, getModelForClass, arrayProp } from '@typegoose/typegoose'
 import { ObjectID } from 'mongodb'
 export enum Gender {
@@ -77,11 +77,13 @@ export class User {
   @prop({ default: false })
   is_admin: boolean;
 
+  @Authorized(["ADMIN"])
   @Field(type => [String])
   @arrayProp({ items: String })
   roles: string[] = [];
 
   @Field(type => String, { nullable: true, description: '用于登录和注册' })
+  @prop({ default: '' })
   token: string;
 }
 

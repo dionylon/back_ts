@@ -1,7 +1,7 @@
 import { ObjectType, Field, Int, ClassType, InputType } from 'type-graphql';
 import { GraphQLScalarType } from 'graphql'
 import { ObjectId } from 'mongodb';
-import { Model, Document } from 'mongoose'
+import { Model, Document, FilterQuery } from 'mongoose'
 
 export const CursorScalar = new GraphQLScalarType({
   name: 'Cursor',
@@ -71,7 +71,7 @@ export function PaginatedResponse<TItem>(TItemClass: ClassType<TItem>) {
 }
 
 export async function fetchPaginatedResponse<T extends Document>(
-  Model: Model<InstanceType<ClassType<T>>>, conditions: Record<string, any>, paging: PagingArgs)
+  Model: Model<InstanceType<ClassType<T>>>, conditions: FilterQuery<T>, paging: PagingArgs)
   : Promise<{ items: T[], total: number, hasMore: boolean }> {
   const afterQuery = paging.afterQuery || {}
   const total = paging.total ?? await Model.find({ ...conditions }).count()

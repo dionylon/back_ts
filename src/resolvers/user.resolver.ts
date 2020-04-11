@@ -1,12 +1,36 @@
-import { Resolver } from 'type-graphql';
+import { Resolver, Mutation, Arg, Query } from 'type-graphql';
 import { User, UserModel } from '../entities/user';
-import { ResourceBaseResolver } from 'src/resolvers/Resouce';
-
+import { ResourceBaseResolver } from './Resouce';
+import { UserInput, UserUpdateInput } from './input/user.input';
+import { hashPassword, validatePassword, createToken, pasrseToken } from '../utils';
 
 
 @Resolver(User)
 export class UserResolver extends ResourceBaseResolver(User, UserModel, UserInput, UserUpdateInput) {
+  @Mutation(returns => User)
+  async newUser(@Arg("user") input: UserInput) {
+    let user = new UserModel(input);
+    user.password = hashPassword(user.password);
+    user = await user.save();
+    user.token = createToken(user);
+    return user;
+  }
 
+  @Query(returns => User, { nullable: true })
+  async login(
+    @Arg('email') email: string,
+    @Arg('password') rawPassword: string
+  ) {
+    const password = hashPassword(rawPassword);
+    const user = await UserModel.findOne({
+      email
+    });
+    if (!user || !validatePassword(rawPassword, user.password)) {
+      return;
+    }
+    user.token = createToken(user);
+    return user;
+  }
 }
 
 

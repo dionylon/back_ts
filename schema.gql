@@ -3,17 +3,147 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+type Badge {
+  type: String!
+  description: String!
+}
+
+"""实际就是any类型,用于paging.after"""
+scalar Cursor
+
+enum Gender {
+  Unknown
+  Male
+  Female
+  Secret
+}
+
+type Group {
+  _id: ObjectId!
+  type: String
+  name: String!
+  avatar: String
+}
+
+input GroupInput {
+  name: String!
+  avatar: String
+}
+
+input GroupUpdateInput {
+  name: String
+  avatar: String
+}
+
+type Mutation {
+  newUser(user: UserInput!): User!
+  newSchool(school: SchoolInput!): School!
+  newGroup(group: GroupInput!): Group!
+}
+
+"""Mongo object id scalar type"""
+scalar ObjectId
+
+type PaginatedGroupResponse {
+  items: [Group!]!
+  total: Int!
+  hasMore: Boolean!
+}
+
+type PaginatedSchoolResponse {
+  items: [School!]!
+  total: Int!
+  hasMore: Boolean!
+}
+
+type PaginatedUserResponse {
+  items: [User!]!
+  total: Int!
+  hasMore: Boolean!
+}
+
+input PagingArgs {
+  """前面加号为正序,减号为逆序"""
+  sort: String = "_id"
+
+  """如果和after一起使用,意思是在after之后跳过n项"""
+  skip: Int = 0
+
+  """上一个列表最后一项中排序字段的值,用于加速分页.如果它和skip一起使用,意思是在它之后跳过n项"""
+  after: Cursor
+  limit: Int = 10
+
+  """如果为空则会从数据库中获取,否则直接返回传入的值"""
+  total: Int
+}
+
 type Query {
-  user(id: String!): User!
+  user(id: ObjectId!): User!
+  users(paging: PagingArgs!): PaginatedUserResponse!
+  school(id: ObjectId!): School!
+  schools(paging: PagingArgs!): PaginatedSchoolResponse!
+  group(id: ObjectId!): Group!
+  groups(paging: PagingArgs!): PaginatedGroupResponse!
+  login(password: String!, email: String!): User
+}
+
+type School {
+  _id: ObjectId!
+  type: String
+  name: String!
+  avatar: String
+
+  """学校英文简称"""
+  abbr: String!
+}
+
+input SchoolInput {
+  name: String!
+  avatar: String
+  abbr: String!
+}
+
+input SchoolUpdateInput {
+  name: String
+  avatar: String
+  abbr: String
 }
 
 type User {
-  _id: ID!
-  nickName: String!
+  _id: ObjectId!
+
+  """教育邮箱"""
   email: String!
-  password: String!
+  realName: String!
+  nickName: String!
+  gender: Gender!
+  studentId: String!
+  avatar: String
+  headline: String!
+  description: String!
+  badges: [Badge!]!
+  is_active: Boolean!
+  is_admin: Boolean!
   roles: [String!]!
 
   """用于登录和注册"""
   token: String
+}
+
+input UserInput {
+  email: String!
+  realName: String!
+  studentId: String!
+  nickName: String!
+  password: String!
+  avatar: String
+}
+
+input UserUpdateInput {
+  realName: String
+  nickName: String
+  avatar: String
+  headline: String
+  description: String
+  gender: Float
 }

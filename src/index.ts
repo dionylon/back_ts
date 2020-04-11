@@ -7,17 +7,20 @@ import Context from './types/Context';
 import { TypegooseMiddleware } from './typegoose-middleware';
 import { ObjectId } from 'mongodb';
 import { ObjectIdScalar } from './types/object-id.scalar';
-import { IncomingMessage } from 'http';
-
-import * as jwt from 'jsonwebtoken';
-import { userInfo } from 'os';
-
-const secret = "secretkey";
+import { connect } from 'mongoose';
+import { pasrseToken } from './utils';
 
 async function bootstrap() {
   const app = express();
   const path = "/graphql";
 
+  const mongoose = await connect('mongodb://localhost:27017',
+    {
+      dbName: "test",
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    }
+  );
 
   const schema = await buildSchema({
     authChecker: customAuthChecker,
@@ -25,7 +28,7 @@ async function bootstrap() {
     globalMiddlewares: [TypegooseMiddleware],
     // use ObjectId scalar mapping
     scalarsMap: [{ type: ObjectId, scalar: ObjectIdScalar }],
-    resolvers: [__dirname + "/modules/**/*.resolver.{ts,js}", __dirname + "/resolvers/**/*.{ts,js}"],
+    resolvers: [__dirname + "/**/*.resolver.{ts,js}", __dirname + "/resolvers/**/*.{ts,js}"],
     emitSchemaFile: true
   });;
   // Create GraphQL server
@@ -37,15 +40,7 @@ async function bootstrap() {
         return undefined;
       }
       const token = auth.substr(auth.indexOf(' ') + 1);
-      let user = undefined;
-      jwt.verify(token, secret, (error: any, decoded: any) => {
-        if (error) {
-          console.log(error.message);
-          return;
-        }
-        console.log(decoded);
-        user = decoded;
-      });
+      let user = pasrseToken(token);
       const ctx: Context = { user };
       return ctx;
     },
@@ -55,7 +50,7 @@ async function bootstrap() {
 
   // Launch the express server
   app.listen({ port: 4000 }, () =>
-    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`),
+    console.log(`芜湖，起飞~ Server ready at http://localhost:4000${server.graphqlPath}`),
   )
 }
 
