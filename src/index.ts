@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import * as express from "express";
 import { ApolloServer, gql, AuthenticationError } from "apollo-server";
 import { buildSchema, Subscription } from "type-graphql";
 import { customAuthChecker } from './authChecker';
@@ -35,15 +34,21 @@ async function bootstrap() {
     subscriptions: {
       path: subscriptionPath
     },
-    context: ({ req }) => {
-      if (!req) return; // 订阅时不是http连接，没有req
-      const auth = req.headers.authorization;
+    context: (http: any) => {
+      let auth = '';
+      if (!http.req) { // 订阅时没有req
+        // console.log(http.connection.context);
+        auth = http.connection.context.authorization;
+      } else {
+        auth = http.req.headers.authorization;
+      }
       if (!auth) {
         return undefined;
       }
       const token = auth.substr(auth.indexOf(' ') + 1);
       pasrseToken(token)
         .then(user => {
+          // console.log(user);
           return { user };
         }).catch(err => {
           console.log('context error');
