@@ -34,26 +34,25 @@ async function bootstrap() {
     subscriptions: {
       path: subscriptionPath
     },
-    context: (http: any) => {
+    context: ({ req, connection }) => {
       let auth = '';
-      if (!http.req) { // 订阅时没有req
-        // console.log(http.connection.context);
-        auth = http.connection.context.authorization;
+      if (connection) {
+        auth = connection.context.Authorization;
       } else {
-        auth = http.req.headers.authorization;
+        auth = req.headers.authorization;
       }
+
       if (!auth) {
-        return undefined;
+        return { user: null };
       }
       const token = auth.substr(auth.indexOf(' ') + 1);
       pasrseToken(token)
         .then(user => {
-          // console.log(user);
           return { user };
         }).catch(err => {
           console.log('context error');
           console.log(err);
-          return;
+          return { user: null };
         })
     },
   });

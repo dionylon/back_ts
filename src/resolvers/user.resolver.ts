@@ -5,7 +5,7 @@ import { UserInput, UserUpdateInput } from './input/user.input';
 import { hashPassword, validatePassword, createToken, pasrseToken } from '../utils';
 
 @Resolver()
-export class UserResolver extends ResourceBaseResolver(User, UserModel, UserInput, UserUpdateInput) {
+export class UserResolver extends ResourceBaseResolver(User, UserModel, UserInput) {
 
   @Mutation(returns => User)
   async newUser(@Arg("user") input: UserInput) {

@@ -5,10 +5,10 @@ import { GroupInput, GroupUpdateInput, SchoolInput, SchoolUpdateInput } from './
 
 
 @Resolver()
-export class GroupResolver extends ResourceBaseResolver(Group, GroupModel, GroupInput, GroupUpdateInput) {
+export class GroupResolver extends ResourceBaseResolver(Group, GroupModel, GroupInput) {
 
 }
 
 @Resolver()
-export class SchoolResolver extends ResourceBaseResolver(School, SchoolModel, SchoolInput, SchoolUpdateInput) {
+export class SchoolResolver extends ResourceBaseResolver(School, SchoolModel, SchoolInput) {
 }

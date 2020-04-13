@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb';
 import { PagingArgs, PaginatedResponse, fetchPaginatedResponse } from '../types/paging'
 
 export function ResourceBaseResolver<T extends ClassType, C = Partial<T>, U = Partial<T>>(ResourceClass: T,
-  ResourceModel: Model<InstanceType<T>>, CreateInputClass: ClassType<C>, UpdateInputClass: ClassType<U>) {
+  ResourceModel: Model<InstanceType<T>>, CreateInputClass: ClassType<C>) {
   const clsName = Case.pascal(ResourceClass.name)
   const snakedClsName = Case.snake(clsName)
   const camelClsNameWithPrefix = (prefix: string) => Case.camel(prefix + clsName)

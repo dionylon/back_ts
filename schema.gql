@@ -40,10 +40,33 @@ input GroupUpdateInput {
   avatar: String
 }
 
+type Message {
+  _id: ObjectId!
+  from: ObjectId!
+  to: ObjectId!
+  type: MessageType!
+  content: String!
+  date: DateTime!
+}
+
+input MessageInput {
+  from: ObjectId!
+  to: ObjectId!
+  type: Float!
+  content: String!
+}
+
+enum MessageType {
+  Whisper
+  GroupTalk
+}
+
 type Mutation {
   newUser(user: UserInput!): User!
+  newMessage(message: MessageInput!): Message!
   newSchool(school: SchoolInput!): School!
   newGroup(group: GroupInput!): Group!
+  sendWhisper(content: String!, to: ObjectId!, from: ObjectId!): Message!
   pubSubMutation(message: String): Boolean!
   publisherMutation(message: String): Boolean!
   pubSubMutationToDynamicTopic(message: String, topic: String!): Boolean!
@@ -60,6 +83,12 @@ scalar ObjectId
 
 type PaginatedGroupResponse {
   items: [Group!]!
+  total: Int!
+  hasMore: Boolean!
+}
+
+type PaginatedMessageResponse {
+  items: [Message!]!
   total: Int!
   hasMore: Boolean!
 }
@@ -94,6 +123,8 @@ input PagingArgs {
 type Query {
   user(id: ObjectId!): User!
   users(paging: PagingArgs!): PaginatedUserResponse!
+  message(id: ObjectId!): Message!
+  messages(paging: PagingArgs!): PaginatedMessageResponse!
   school(id: ObjectId!): School!
   schools(paging: PagingArgs!): PaginatedSchoolResponse!
   group(id: ObjectId!): Group!
@@ -125,6 +156,10 @@ input SchoolUpdateInput {
 }
 
 type Subscription {
+  subscriptMessage(
+    """订阅对象的id"""
+    id: String!
+  ): Message!
   normalSubscription: Notification!
   subscriptionWithFilter: Notification!
   subscriptionWithFilterToDynamicTopic(topic: String!): Notification!
