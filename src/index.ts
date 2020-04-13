@@ -1,19 +1,17 @@
 import 'reflect-metadata';
 import * as express from "express";
-import { ApolloServer, gql } from "apollo-server-express";
-import { buildSchema } from "type-graphql";
-import { customAuthChecker } from './authChcker';
-import Context from './types/Context';
-import { TypegooseMiddleware } from './typegoose-middleware';
+import { ApolloServer, gql, AuthenticationError } from "apollo-server";
+import { buildSchema, Subscription } from "type-graphql";
+import { customAuthChecker } from './authChecker';
+import { TypegooseMiddleware } from './middlewares/typegoose-middleware';
 import { ObjectId } from 'mongodb';
 import { ObjectIdScalar } from './types/object-id.scalar';
 import { connect } from 'mongoose';
 import { pasrseToken } from './utils';
 
 async function bootstrap() {
-  const app = express();
-  const path = "/graphql";
-
+  const port = 9527;
+  const subscriptionPath = "/subs";
   const mongoose = await connect('mongodb://localhost:27017',
     {
       dbName: "test",
@@ -34,24 +32,30 @@ async function bootstrap() {
   // Create GraphQL server
   const server = new ApolloServer({
     schema,
-    context: (http: any) => {
-      const auth = http.req.headers['authorization'];
+    subscriptions: {
+      path: subscriptionPath
+    },
+    context: ({ req }) => {
+      if (!req) return; // 订阅时不是http连接，没有req
+      const auth = req.headers.authorization;
       if (!auth) {
         return undefined;
       }
       const token = auth.substr(auth.indexOf(' ') + 1);
-      let user = pasrseToken(token);
-      const ctx: Context = { user };
-      return ctx;
+      pasrseToken(token)
+        .then(user => {
+          return { user };
+        }).catch(err => {
+          console.log('context error');
+          console.log(err);
+          return;
+        })
     },
   });
-  // Apply the GraphQL server middleware
-  server.applyMiddleware({ app, path });
-
   // Launch the express server
-  app.listen({ port: 4000 }, () =>
-    console.log(`芜湖，起飞~ Server ready at http://localhost:4000${server.graphqlPath}`),
-  )
+  server.listen({ port }, () => {
+    console.log(`芜湖~起飞~ \nServer ready at http://localhost:${port}${server.graphqlPath}`);
+  })
 }
 
 bootstrap();

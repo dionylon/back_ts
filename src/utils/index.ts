@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { User } from 'src/entities/user';
 import * as jwt from 'jsonwebtoken';
+import { Context } from 'vm';
 
 const secret = "secretkey";
 
@@ -19,15 +20,13 @@ export function createToken(payload: any): string {
   return jwt.sign(JSON.stringify(payload), secret);;
 }
 
-export function pasrseToken(token: string): { id: string, roles: string[] } {
-  let ctxUser = { id: '', roles: [] };
-  jwt.verify(token, secret, (err, decoded: any) => {
-    if (err) {
-      return undefined;
-    }
-    const user = decoded;
-    ctxUser.id = user._id;
-    ctxUser.roles = user.roles;
+export function pasrseToken(token: string): Promise<Context> {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, secret, (err, decoded) => {
+      if (err) {
+        reject(err);
+      }
+      resolve(decoded);
+    });
   });
-  return ctxUser;
 }

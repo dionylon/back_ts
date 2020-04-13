@@ -1,12 +1,12 @@
-import { Resolver, Mutation, Arg, Query } from 'type-graphql';
+import { Resolver, Mutation, Arg, Query, PubSub, PubSubEngine, Root } from 'type-graphql';
 import { User, UserModel } from '../entities/user';
 import { ResourceBaseResolver } from './Resouce';
 import { UserInput, UserUpdateInput } from './input/user.input';
 import { hashPassword, validatePassword, createToken, pasrseToken } from '../utils';
 
-
-@Resolver(User)
+@Resolver()
 export class UserResolver extends ResourceBaseResolver(User, UserModel, UserInput, UserUpdateInput) {
+
   @Mutation(returns => User)
   async newUser(@Arg("user") input: UserInput) {
     let user = new UserModel(input);

@@ -11,6 +11,11 @@ type Badge {
 """实际就是any类型,用于paging.after"""
 scalar Cursor
 
+"""
+The javascript `Date` as string. Type represents date and time as the ISO Date string.
+"""
+scalar DateTime
+
 enum Gender {
   Unknown
   Male
@@ -39,6 +44,15 @@ type Mutation {
   newUser(user: UserInput!): User!
   newSchool(school: SchoolInput!): School!
   newGroup(group: GroupInput!): Group!
+  pubSubMutation(message: String): Boolean!
+  publisherMutation(message: String): Boolean!
+  pubSubMutationToDynamicTopic(message: String, topic: String!): Boolean!
+}
+
+type Notification {
+  id: ID!
+  message: String
+  date: DateTime!
 }
 
 """Mongo object id scalar type"""
@@ -84,6 +98,7 @@ type Query {
   schools(paging: PagingArgs!): PaginatedSchoolResponse!
   group(id: ObjectId!): Group!
   groups(paging: PagingArgs!): PaginatedGroupResponse!
+  currentDate: DateTime!
   login(password: String!, email: String!): User
 }
 
@@ -107,6 +122,12 @@ input SchoolUpdateInput {
   name: String
   avatar: String
   abbr: String
+}
+
+type Subscription {
+  normalSubscription: Notification!
+  subscriptionWithFilter: Notification!
+  subscriptionWithFilterToDynamicTopic(topic: String!): Notification!
 }
 
 type User {
