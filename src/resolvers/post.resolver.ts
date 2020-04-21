@@ -6,6 +6,7 @@ import { User, UserModel } from '../entities/user';
 import Context from '../types/Context';
 import { AuthAccess } from '../middlewares/auth-access';
 import { ObjectId } from 'mongodb';
+import { Comment, CommentModel } from '../entities/comment';
 
 
 @Resolver(Post)
@@ -13,6 +14,12 @@ export class PostResolver extends ResourceBaseResolver(Post, PostModel, PostInpu
   @FieldResolver(returns => User)
   async author(@Root() root: Post) {
     return UserModel.findOne({ _id: root.author });
+  }
+
+
+  @FieldResolver(returns => [Comment], { nullable: true })
+  async comments(@Root() root: Post) {
+    return await CommentModel.find({ replyOf: root._id })
   }
 
   @Mutation(returns => Post)

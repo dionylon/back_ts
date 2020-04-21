@@ -8,6 +8,21 @@ type Badge {
   description: String!
 }
 
+type Comment {
+  _id: ObjectId!
+  author: User!
+
+  """最多300字符"""
+  content: String!
+  createBy: DateTime!
+  replyOf: Post!
+}
+
+input CommentInput {
+  content: String!
+  replyOf: ObjectId!
+}
+
 """实际就是any类型,用于paging.after"""
 scalar Cursor
 
@@ -70,6 +85,7 @@ type Mutation {
   newMessage(message: MessageInput!): Message!
   newSchool(school: SchoolInput!): School!
   newGroup(group: GroupInput!): Group!
+  newComment(comment: CommentInput!): Comment!
   sendWhisper(message: MessageInput!): Message!
   updatePost(post: PostUpdateInput!, id: ObjectId!): Boolean!
   deletePost(id: ObjectId!): Boolean
@@ -78,6 +94,12 @@ type Mutation {
 
 """Mongo object id scalar type"""
 scalar ObjectId
+
+type PaginatedCommentResponse {
+  items: [Comment!]!
+  total: Int!
+  hasMore: Boolean!
+}
 
 type PaginatedGroupResponse {
   items: [Group!]!
@@ -133,6 +155,7 @@ type Post {
   imgList: [String!]
   createBy: DateTime!
   updateBy: DateTime!
+  comments: [Comment!]
 }
 
 input PostInput {
@@ -157,6 +180,8 @@ type Query {
   schools(paging: PagingArgs!): PaginatedSchoolResponse!
   group(id: ObjectId!): Group!
   groups(paging: PagingArgs!): PaginatedGroupResponse!
+  comment(id: ObjectId!): Comment!
+  comments(paging: PagingArgs!): PaginatedCommentResponse!
   login(password: String!, email: String!): User
 }
 

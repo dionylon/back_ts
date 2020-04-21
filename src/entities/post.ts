@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import { prop, arrayProp, getModelForClass } from '@typegoose/typegoose';
 import { Ref } from "../types/Ref";
 import { User } from './user';
+import { Comment } from './comment';
 
 @ObjectType()
 export class Post {
@@ -28,6 +29,9 @@ export class Post {
   @Field(type => Date)
   @prop({ index: true })
   updateBy: Date;
+
+  @Field(type => [Comment], { defaultValue: [] })
+  comments: Array<Comment>;
 }
 
 export const PostModel = getModelForClass(Post);
