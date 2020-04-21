@@ -3,10 +3,11 @@ import { ObjectId } from 'mongodb';
 import { prop, getModelForClass } from '@typegoose/typegoose';
 
 export enum MessageType {
-  Whisper,
-  GroupTalk
+  Whisper = "WHISPER",
+  GroupTalk = "GROUPTALK",
+  Broadcast = "BROADCAST"
 }
-registerEnumType(MessageType, { name: 'MessageType' });
+registerEnumType(MessageType, { name: 'MessageType', description: "消息类型" });
 
 @ObjectType()
 export class Message {
@@ -25,7 +26,7 @@ export class Message {
   @prop()
   type: MessageType;
 
-  @Field()
+  @Field({ description: "最大长度300" })
   @prop({ maxlength: 300 })
   content: string;
 

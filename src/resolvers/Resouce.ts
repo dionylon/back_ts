@@ -5,7 +5,7 @@ import { ObjectIdScalar } from '../types/object-id.scalar';
 import { ObjectId } from 'mongodb';
 import { PagingArgs, PaginatedResponse, fetchPaginatedResponse } from '../types/paging'
 
-export function ResourceBaseResolver<T extends ClassType, C = Partial<T>, U = Partial<T>>(ResourceClass: T,
+export function ResourceBaseResolver<T extends ClassType, C = Partial<T>>(ResourceClass: T,
   ResourceModel: Model<InstanceType<T>>, CreateInputClass: ClassType<C>) {
   const clsName = Case.pascal(ResourceClass.name)
   const snakedClsName = Case.snake(clsName)

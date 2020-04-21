@@ -10,7 +10,5 @@ export class MessageInput implements Partial<Message> {
   @Field()
   to: ObjectId;
   @Field()
-  type: MessageType;
-  @Field()
   content: string;
 }

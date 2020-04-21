@@ -46,14 +46,7 @@ async function bootstrap() {
         return { user: null };
       }
       const token = auth.substr(auth.indexOf(' ') + 1);
-      pasrseToken(token)
-        .then(user => {
-          return { user };
-        }).catch(err => {
-          console.log('context error');
-          console.log(err);
-          return { user: null };
-        })
+      return pasrseToken(token);
     },
   });
   // Launch the express server

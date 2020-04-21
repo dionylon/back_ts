@@ -1,53 +1,58 @@
-import { Resolver, Subscription, Mutation, Args, Arg, Root, PubSubEngine, PubSub, UseMiddleware } from 'type-graphql';
+import { Resolver, Subscription, Mutation, Arg, Root, PubSubEngine, PubSub, UseMiddleware } from 'type-graphql';
 import { ResourceBaseResolver } from './Resouce';
 import { Message, MessageModel } from '../entities/message';
 import { MessageInput } from './input/message.input';
-import { ObjectId } from 'mongodb';
 import { MessageType } from '../entities/message';
-import { Access } from '../middlewares/access';
+import { AuthAccess } from '../middlewares/auth-access';
 
 
 export interface MsgPayload {
   msg: Message;
 }
 
+export const MessageTopics = {
+  Whisper: "WHISPER",
+  GroupTalk: "GROUPTALK"
+}
 
 @Resolver()
 export class MessageResolver extends ResourceBaseResolver(Message, MessageModel, MessageInput) {
 
   @Subscription(
-    returns => Message,
+    () => Message,
     {
-      topics: "MSG",
-      filter: ({ args, payload, context }) => {
-        return args.id == payload.id;
+      topics: MessageTopics.Whisper,
+      filter: ({ payload, context }) => {
+        // console.log('订阅filter')
+        // console.log(context);
+        // 只能看到发给自己的消息
+        return context.user._id == payload.msg.to;
       }
     }
   )
   async subscriptMessage(
     @Root() payload: MsgPayload,
-    @Arg("id", { description: "订阅对象的id" }) id: string
   ) {
     return payload.msg;
   }
 
-  @Mutation(returns => Message)
+
+  @UseMiddleware(AuthAccess)
+  @Mutation(() => Message)
   async sendWhisper(
-    @Arg("from") from: ObjectId,
-    @Arg("to") to: ObjectId,
-    @Arg("content") content: string,
+    @Arg("message") message: MessageInput,
     @PubSub() pubSub: PubSubEngine
   ) {
-    const message = new MessageModel(
+    const mm = new MessageModel(
       {
-        from, to, content,
+        ...message,
         type: MessageType.Whisper,
         date: new Date()
       }
     );
-    const msg = await message.save();
+    const msg = await mm.save();
     // console.log(msg);
-    pubSub.publish("MSG", { id: msg.from, msg });
+    pubSub.publish(MessageTopics.Whisper, { msg });
     return msg;
   }
 }

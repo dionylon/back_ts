@@ -2,6 +2,7 @@ import * as crypto from 'crypto';
 import { User } from 'src/entities/user';
 import * as jwt from 'jsonwebtoken';
 import { Context } from 'vm';
+import { AuthenticationError } from 'apollo-server';
 
 const secret = "secretkey";
 
@@ -20,13 +21,6 @@ export function createToken(payload: any): string {
   return jwt.sign(JSON.stringify(payload), secret);;
 }
 
-export function pasrseToken(token: string): Promise<Context> {
-  return new Promise((resolve, reject) => {
-    jwt.verify(token, secret, (err, decoded) => {
-      if (err) {
-        reject(err);
-      }
-      resolve(decoded);
-    });
-  });
+export function pasrseToken(token: string): Context {
+  return { user: jwt.decode(token) };
 }

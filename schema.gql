@@ -45,6 +45,8 @@ type Message {
   from: ObjectId!
   to: ObjectId!
   type: MessageType!
+
+  """最大长度300"""
   content: String!
   date: DateTime!
 }
@@ -52,30 +54,26 @@ type Message {
 input MessageInput {
   from: ObjectId!
   to: ObjectId!
-  type: Float!
   content: String!
 }
 
+"""消息类型"""
 enum MessageType {
   Whisper
   GroupTalk
+  Broadcast
 }
 
 type Mutation {
   newUser(user: UserInput!): User!
+  newPost(post: PostInput!): Post!
   newMessage(message: MessageInput!): Message!
   newSchool(school: SchoolInput!): School!
   newGroup(group: GroupInput!): Group!
-  sendWhisper(content: String!, to: ObjectId!, from: ObjectId!): Message!
-  pubSubMutation(message: String): Boolean!
-  publisherMutation(message: String): Boolean!
-  pubSubMutationToDynamicTopic(message: String, topic: String!): Boolean!
-}
-
-type Notification {
-  id: ID!
-  message: String
-  date: DateTime!
+  sendWhisper(message: MessageInput!): Message!
+  updatePost(post: PostUpdateInput!, id: ObjectId!): Boolean!
+  deletePost(id: ObjectId!): Boolean
+  updateUser(user: UserUpdateInput!, id: ObjectId!): Boolean!
 }
 
 """Mongo object id scalar type"""
@@ -89,6 +87,12 @@ type PaginatedGroupResponse {
 
 type PaginatedMessageResponse {
   items: [Message!]!
+  total: Int!
+  hasMore: Boolean!
+}
+
+type PaginatedPostResponse {
+  items: [Post!]!
   total: Int!
   hasMore: Boolean!
 }
@@ -120,16 +124,39 @@ input PagingArgs {
   total: Int
 }
 
+type Post {
+  _id: ObjectId!
+  author: User!
+  content: String!
+
+  """图片url列表"""
+  imgList: [String!]
+  createBy: DateTime!
+  updateBy: DateTime!
+}
+
+input PostInput {
+  content: String!
+
+  """图片url列表"""
+  imgList: [String!]
+}
+
+input PostUpdateInput {
+  content: String!
+}
+
 type Query {
   user(id: ObjectId!): User!
   users(paging: PagingArgs!): PaginatedUserResponse!
+  post(id: ObjectId!): Post!
+  posts(paging: PagingArgs!): PaginatedPostResponse!
   message(id: ObjectId!): Message!
   messages(paging: PagingArgs!): PaginatedMessageResponse!
   school(id: ObjectId!): School!
   schools(paging: PagingArgs!): PaginatedSchoolResponse!
   group(id: ObjectId!): Group!
   groups(paging: PagingArgs!): PaginatedGroupResponse!
-  currentDate: DateTime!
   login(password: String!, email: String!): User
 }
 
@@ -156,13 +183,7 @@ input SchoolUpdateInput {
 }
 
 type Subscription {
-  subscriptMessage(
-    """订阅对象的id"""
-    id: String!
-  ): Message!
-  normalSubscription: Notification!
-  subscriptionWithFilter: Notification!
-  subscriptionWithFilterToDynamicTopic(topic: String!): Notification!
+  subscriptMessage: Message!
 }
 
 type User {
