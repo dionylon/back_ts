@@ -29,9 +29,6 @@ export class Post extends TimeStamps {
   @Field(type => Date)
   updatedAt: Date;
 
-  @Field(type => [Comment], { defaultValue: [], description: "默认返回5个，更多的需要再次查询" })
-  comments: Array<Comment>;
-
   @Field(type => Int, { description: "评论数" })
   commentsCount: number;
 

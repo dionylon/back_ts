@@ -60,6 +60,10 @@ export class Reply extends TimeStamps {
   @prop({ ref: Comment, index: true })
   parent: Ref<Comment>;
 
+  @Field(type => Post, { description: "回复所属的post" })
+  @prop({ ref: Post, index: true })
+  post: Ref<Post>;
+
   @Field(type => Date)
   createdAt: Date;
 

@@ -172,9 +172,6 @@ type Post {
   createdAt: DateTime!
   updatedAt: DateTime!
 
-  """默认返回5个，更多的需要再次查询"""
-  comments: [Comment!]
-
   """评论数"""
   commentsCount: Int!
 }
@@ -203,8 +200,8 @@ type Query {
   groups(paging: PagingArgs!): PaginatedGroupResponse!
   reply(id: ObjectId!): Reply!
   replys(paging: PagingArgs!): PaginatedReplyResponse!
-  comment(id: ObjectId!): Comment!
-  comments(paging: PagingArgs!): PaginatedCommentResponse!
+  comments(paging: PagingArgs!, postId: ObjectId!): PaginatedCommentResponse
+  comment(id: ObjectId!): Comment
   login(password: String!, email: String!): User
 }
 
@@ -221,6 +218,9 @@ type Reply {
 
   """父评论"""
   parent: Comment!
+
+  """回复所属的post"""
+  post: Post!
   createdAt: DateTime!
 }
 

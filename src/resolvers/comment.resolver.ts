@@ -1,4 +1,4 @@
-import { Resolver, FieldResolver, Arg, Root, Mutation, Ctx, UseMiddleware, Int } from 'type-graphql';
+import { Resolver, FieldResolver, Arg, Root, Mutation, Ctx, UseMiddleware, Int, Query, ObjectType } from 'type-graphql';
 import { Comment, CommentModel, Reply, ReplyModel } from '../entities/comment';
 import { ResourceBaseResolver } from './Resouce';
 import { CommentInput, ReplyInput } from './input/comment.input';
@@ -6,10 +6,41 @@ import { Post, PostModel } from '../entities/post';
 import Context from '../types/Context';
 import { AuthAccess } from '../middlewares/auth-access';
 import { User, UserModel } from '../entities/user';
+import { PagingArgs, PaginatedResponse, fetchPaginatedResponse } from '../types/paging';
+import { ObjectId } from 'mongodb';
 
+
+@ObjectType('PaginatedCommentResponse')
+class PaginatedCommentResponse extends PaginatedResponse(Comment) { }
 
 @Resolver(Comment)
-export class CommentResolver extends ResourceBaseResolver(Comment, CommentModel, CommentInput) {
+export class CommentResolver {
+  @Query(returns => PaginatedCommentResponse, { nullable: true })
+  async comments(
+    @Arg("postId") postId: ObjectId,
+    @Arg("paging") paging: PagingArgs
+  ) {
+    return await fetchPaginatedResponse(CommentModel, { parent: postId }, paging);
+  }
+
+  @Query(returns => Comment, { nullable: true })
+  async comment(
+    @Arg("id") id: ObjectId
+  ) {
+    return await CommentModel.findById(id);
+  }
+  @Mutation(returns => Comment)
+  @UseMiddleware(AuthAccess)
+  async newComment(
+    @Arg("comment") commentInput: CommentInput,
+    @Ctx() ctx: Context
+  ) {
+    const comment = new CommentModel({
+      ...commentInput,
+      author: ctx.user?.id
+    });
+    return await comment.save();
+  }
 
   @FieldResolver(returns => [Reply], { nullable: true, description: "默认只查3个" })
   async replyList(
@@ -42,18 +73,7 @@ export class CommentResolver extends ResourceBaseResolver(Comment, CommentModel,
     return await UserModel.findById(root.author);
   }
 
-  @Mutation(returns => Comment)
-  @UseMiddleware(AuthAccess)
-  async newComment(
-    @Arg("comment") commentInput: CommentInput,
-    @Ctx() ctx: Context
-  ) {
-    const comment = new CommentModel({
-      ...commentInput,
-      author: ctx.user?.id
-    });
-    return await comment.save();
-  }
+
 }
 
 @Resolver(Reply)
@@ -71,14 +91,24 @@ export class ReplyResolver extends ResourceBaseResolver(Reply, ReplyModel, Reply
   ) {
     return await UserModel.findById(root.to);
   }
+
+  @FieldResolver(returns => User)
+  async post(
+    @Root() reply: Reply
+  ) {
+    return await PostModel.findById(reply.post);
+  }
+
   @Mutation(returns => Reply)
   @UseMiddleware(AuthAccess)
   async newReply(
     @Arg("reply") replyInput: ReplyInput,
     @Ctx() ctx: Context
   ) {
+    const comment = await CommentModel.findById(replyInput.parent);
     const reply = new ReplyModel({
       ...replyInput,
+      post: comment?.parent,
       from: ctx.user?.id
     });
     return await reply.save();

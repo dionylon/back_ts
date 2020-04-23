@@ -6,7 +6,7 @@ import { User, UserModel } from '../entities/user';
 import Context from '../types/Context';
 import { AuthAccess } from '../middlewares/auth-access';
 import { ObjectId } from 'mongodb';
-import { Comment, CommentModel } from '../entities/comment';
+import { Comment, CommentModel, ReplyModel } from '../entities/comment';
 
 
 @Resolver(Post)
@@ -19,14 +19,9 @@ export class PostResolver extends ResourceBaseResolver(Post, PostModel, PostInpu
   async commentsCount(
     @Root() post: Post
   ) {
-    return await CommentModel.countDocuments({ parent: post._id });
-  }
-
-  @FieldResolver(returns => [Comment], { nullable: true })
-  async comments(@Root() root: Post) {
-    return await CommentModel
-      .find({ parent: root._id })
-      .limit(5);
+    const commentCount = await CommentModel.countDocuments({ parent: post._id });
+    const replyCount = await ReplyModel.countDocuments({ post: post._id });
+    return commentCount + replyCount;
   }
 
   @Mutation(returns => Post)
