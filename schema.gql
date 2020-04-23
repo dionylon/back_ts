@@ -8,19 +8,28 @@ type Badge {
   description: String!
 }
 
+"""评论"""
 type Comment {
   _id: ObjectId!
   author: User!
 
   """最多300字符"""
   content: String!
-  createBy: DateTime!
-  replyOf: Post!
+  createdAt: DateTime!
+
+  """评论的对象"""
+  parent: Post!
+
+  """评论的回复列表"""
+  replyList: [Reply!]!
+
+  """回复的个数"""
+  replyCount: Float!
 }
 
 input CommentInput {
   content: String!
-  replyOf: ObjectId!
+  parent: ObjectId!
 }
 
 """实际就是any类型,用于paging.after"""
@@ -63,7 +72,7 @@ type Message {
 
   """最大长度300"""
   content: String!
-  date: DateTime!
+  createdAt: DateTime!
 }
 
 input MessageInput {
@@ -85,6 +94,7 @@ type Mutation {
   newMessage(message: MessageInput!): Message!
   newSchool(school: SchoolInput!): School!
   newGroup(group: GroupInput!): Group!
+  newReply(reply: ReplyInput!): Reply!
   newComment(comment: CommentInput!): Comment!
   sendWhisper(message: MessageInput!): Message!
   updatePost(post: PostUpdateInput!, id: ObjectId!): Boolean!
@@ -115,6 +125,12 @@ type PaginatedMessageResponse {
 
 type PaginatedPostResponse {
   items: [Post!]!
+  total: Int!
+  hasMore: Boolean!
+}
+
+type PaginatedReplyResponse {
+  items: [Reply!]!
   total: Int!
   hasMore: Boolean!
 }
@@ -153,9 +169,14 @@ type Post {
 
   """图片url列表"""
   imgList: [String!]
-  createBy: DateTime!
-  updateBy: DateTime!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+
+  """默认返回5个，更多的需要再次查询"""
   comments: [Comment!]
+
+  """评论数"""
+  commentsCount: Int!
 }
 
 input PostInput {
@@ -180,9 +201,35 @@ type Query {
   schools(paging: PagingArgs!): PaginatedSchoolResponse!
   group(id: ObjectId!): Group!
   groups(paging: PagingArgs!): PaginatedGroupResponse!
+  reply(id: ObjectId!): Reply!
+  replys(paging: PagingArgs!): PaginatedReplyResponse!
   comment(id: ObjectId!): Comment!
   comments(paging: PagingArgs!): PaginatedCommentResponse!
   login(password: String!, email: String!): User
+}
+
+"""评论的回复"""
+type Reply {
+  _id: ObjectId!
+  content: String!
+
+  """回复的作者"""
+  from: User!
+
+  """回复的对象,为空说明直接回复父评论"""
+  to: User
+
+  """父评论"""
+  parent: Comment!
+  createdAt: DateTime!
+}
+
+input ReplyInput {
+  content: String!
+
+  """回复的评论id"""
+  parent: ObjectId!
+  to: ObjectId
 }
 
 type School {

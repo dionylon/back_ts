@@ -23,8 +23,6 @@ export class MessageResolver extends ResourceBaseResolver(Message, MessageModel,
     {
       topics: MessageTopics.Whisper,
       filter: ({ payload, context }) => {
-        // console.log('订阅filter')
-        // console.log(context);
         // 只能看到发给自己的消息
         return context.user._id == payload.msg.to;
       }
@@ -46,8 +44,7 @@ export class MessageResolver extends ResourceBaseResolver(Message, MessageModel,
     const mm = new MessageModel(
       {
         ...message,
-        type: MessageType.Whisper,
-        date: new Date()
+        type: MessageType.Whisper
       }
     );
     const msg = await mm.save();

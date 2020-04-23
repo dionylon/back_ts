@@ -1,4 +1,4 @@
-import { Resolver, FieldResolver, Root, Arg, Mutation, Ctx, UseMiddleware, Args } from 'type-graphql';
+import { Resolver, FieldResolver, Root, Arg, Mutation, Ctx, UseMiddleware, Args, Int } from 'type-graphql';
 import { ResourceBaseResolver } from './Resouce';
 import { PostModel, Post } from '../entities/post';
 import { PostInput, PostUpdateInput } from './input/post.input';
@@ -13,13 +13,20 @@ import { Comment, CommentModel } from '../entities/comment';
 export class PostResolver extends ResourceBaseResolver(Post, PostModel, PostInput) {
   @FieldResolver(returns => User)
   async author(@Root() root: Post) {
-    return UserModel.findOne({ _id: root.author });
+    return UserModel.findById(root.author);
   }
-
+  @FieldResolver(returns => Int)
+  async commentsCount(
+    @Root() post: Post
+  ) {
+    return await CommentModel.countDocuments({ parent: post._id });
+  }
 
   @FieldResolver(returns => [Comment], { nullable: true })
   async comments(@Root() root: Post) {
-    return await CommentModel.find({ replyOf: root._id })
+    return await CommentModel
+      .find({ parent: root._id })
+      .limit(5);
   }
 
   @Mutation(returns => Post)
@@ -29,11 +36,8 @@ export class PostResolver extends ResourceBaseResolver(Post, PostModel, PostInpu
     @Ctx() ctx: Context
   ) {
     // console.log(ctx);
-    const date = new Date();
     const post = new PostModel({
       ...postInput,
-      createBy: date,
-      updateBy: date,
       author: ctx.user?.id
     })
     const res = await post.save();
@@ -47,7 +51,7 @@ export class PostResolver extends ResourceBaseResolver(Post, PostModel, PostInpu
     @Arg("post") post: PostUpdateInput,
     @Ctx() ctx: Context
   ) {
-    const newpost = { ...post, updateBy: new Date() };
+    const newpost = { ...post };
     const res = await PostModel.updateOne(
       { _id: id, author: ctx.user?.id },
       newpost

@@ -1,6 +1,7 @@
 import { Field, ObjectType, registerEnumType, Authorized } from 'type-graphql';
 import { ObjectId } from 'mongodb';
 import { prop, getModelForClass } from '@typegoose/typegoose';
+import { TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 
 export enum MessageType {
   Whisper = "WHISPER",
@@ -10,7 +11,7 @@ export enum MessageType {
 registerEnumType(MessageType, { name: 'MessageType', description: "消息类型" });
 
 @ObjectType()
-export class Message {
+export class Message extends TimeStamps {
   @Field()
   readonly _id: ObjectId;
 
@@ -31,8 +32,7 @@ export class Message {
   content: string;
 
   @Field(type => Date)
-  @prop()
-  date: Date;
+  createdAt: Date
 }
 
 export const MessageModel = getModelForClass(Message);

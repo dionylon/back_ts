@@ -1,12 +1,13 @@
-import { ObjectType, Field } from 'type-graphql';
+import { ObjectType, Field, Int } from 'type-graphql';
 import { ObjectId } from 'mongodb';
 import { prop, arrayProp, getModelForClass } from '@typegoose/typegoose';
 import { Ref } from "../types/Ref";
 import { User } from './user';
 import { Comment } from './comment';
+import { TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
 
 @ObjectType()
-export class Post {
+export class Post extends TimeStamps {
   @Field()
   readonly _id: ObjectId;
 
@@ -23,15 +24,17 @@ export class Post {
   imgList: Array<string>;
 
   @Field(type => Date)
-  @prop({ index: true })
-  createBy: Date;
+  createdAt: Date;
 
   @Field(type => Date)
-  @prop({ index: true })
-  updateBy: Date;
+  updatedAt: Date;
 
-  @Field(type => [Comment], { defaultValue: [] })
+  @Field(type => [Comment], { defaultValue: [], description: "默认返回5个，更多的需要再次查询" })
   comments: Array<Comment>;
+
+  @Field(type => Int, { description: "评论数" })
+  commentsCount: number;
+
 }
 
 export const PostModel = getModelForClass(Post);
